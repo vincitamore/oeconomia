@@ -1,0 +1,147 @@
+---
+name: oeconomia
+description: >-
+  Delegation economy for budget-constrained orchestrator sessions: when the
+  main session runs on a scarce, rate-limited model and strong workhorse
+  models are available as subagents, keep the orchestrator's compounding
+  context window lean by routing high-volume, low-judgment work to
+  explicit-model subagents. REFLEX (holds even before the body loads):
+  (1) EVERY Agent dispatch carries an explicit `model:` — an unset dispatch
+  can inherit the session model and silently spend the budget you are
+  protecting; (2) delegate bulk + early — multi-file comprehension reads,
+  protocol-driven review sweeps, build/test runs, scripted bulk edits — bulk
+  content must never land in the orchestrator's window, where it is re-billed
+  on every remaining turn; (3) keep judgment — architecture, which-change
+  decisions, synthesis, calibration reads, version-control curation, dialogue
+  with the user; (4) floor — a single known-file read, a one-off grep, a
+  two-line edit, or any read near session-end stays home. Load the body
+  BEFORE: dispatching or inlining a heavy multi-file read; a bounded code task
+  mid-conversation; forming a review wave; continuing any session whose
+  context is heading past ~300K tokens. SKIP in cheap short sessions (most
+  lookup and light research work) — imposing delegation ceremony there is this
+  skill's failure mode. Economy licenses errand delegation, never avoidance of
+  genuinely pipeline-shaped work: three or more independent concerns needing
+  parallel investigation and synthesis deserve a real multi-agent pipeline,
+  not one under-powered errand.
+---
+
+# Oeconomia — a delegation economy for orchestrator sessions
+
+*Oeconomia* (Greek οἰκονομία): household stewardship — the discipline of spending a scarce resource where only it can serve, and routing everything else to where it is plentiful. This skill is that discipline applied to an orchestrating model session: which work the main session keeps, which work it dispatches to subagents, what shape the handoff takes, and how the returned work is verified without re-doing it.
+
+It was distilled from measured evidence: token-accounting across roughly six hundred working sessions in one long-running environment, plus a forensic study of a large delegated-review prototype (dozens of subagents, around two million subagent tokens) whose choices the finished doctrine reproduces when applied blind. The numbers below are one environment's measurements; the mechanisms are general. Measure your own environment before trusting any constant — the last section shows how.
+
+## 0. Charter and jurisdiction
+
+**Governs**: everyday intra-session work allocation when the orchestrating session runs on a scarce or rate-limited model and capable workhorse models are available for subagent dispatch. Errands, background reads, bounded code tasks, review sweeps.
+
+**Does not govern**: pipeline-shaped work. When a problem has three or more independent concerns that deserve parallel investigation and a synthesis pass, that is a deliberate multi-agent pipeline — a different regime whose primitive is fidelity, not economy. **The border sentence: economy licenses errand delegation; it never licenses avoidance of pipeline-shaped work.** A budget-anxious orchestrator collapsing a genuine five-agent investigation into one under-powered errand is this skill's worst failure mode — the vice wearing the virtue's clothes.
+
+**Regime check**: when the session model IS the workhorse model, the budget argument loses its force. The classification lens below still improves the work; the urgency is what varies.
+
+**Non-hampering clause**: this contract may never degrade the work. Delegation forces crisp specification, which usually raises quality; where it would lower fidelity instead, fidelity wins and the delegation is re-shaped, not forced.
+
+## 1. Why this works: the window is the cost
+
+Measured across ~600 sessions: an orchestrator session consumes input over output at roughly **263:1**, and ~98.5% of that input is cache-read — the accumulated context window re-sent on every turn. Generation is a rounding error against the window, and ~92% of generation is thinking: no-tool reasoning and user dialogue, the one thing that cannot be delegated at all. (If your provider weights cached reads at a tenth, the ratio compresses toward 5:1 — the direction is invariant, and the direction is all the doctrine needs.)
+
+Three consequences:
+
+1. **The true cost of a context-entering read is `freight × expected-remaining-turns`.** A bulk read early in a long session is re-billed hundreds of times before the session ends; the same read near session-end is nearly free. A subagent's window is disposable — it pays for its reading once, across a short life, and dies. So the floor under delegation has a *timing* axis, not just a size axis: **delegate bulk, early**.
+2. **Byte-share is the wrong metric.** An environment can already route the majority of raw read-bytes through subagents while the orchestrator still consumes ~96% of the budget. The win is architectural, not volumetric: **stop letting bulk content land in the compounding window** — not "delegate more reading."
+3. **A lean window is not merely cheaper — it is sharper.** A context holding distilled summaries, briefs, and verdicts keeps its judgment crisp across hundreds of turns; a context holding raw file dumps makes every subsequent inference compete with noise. The attention argument outlives any pricing regime, which is why this discipline is worth keeping even when tokens are cheap.
+
+One honest ceiling: **delegation halves; it never eliminates.** In the measured exemplar pair, a well-delegated heavy session still cost about half of what a comparable undelegated one cost — not a tenth. Design, calibration, protocol authoring, briefs, and ingest are irreducibly the orchestrator's. This contract mitigates the compounding window; it does not promise salvation.
+
+## 2. The lens: judgment-density, not token count
+
+Classify every action by the **conditional complexity of its output given the available substrate** — how much of what the action produces is fixed by what already exists (codebase, docs, protocols, schemas, briefs) versus originated by the actor's judgment. Never classify by token count: measured across the corpus, bulk reads carry enormous freight and near-zero generation while edits carry near-zero freight and high generation. Context-heavy and judgment-heavy are different *regions* of the action space, not two ends of one scale.
+
+The working ladder:
+
+| Level | Meaning | Examples |
+|---|---|---|
+| **Stock** | output retrievable from the substrate | mechanical reads, look up a value, run a known command |
+| **Implied** | derivable by a known procedure, no choice | sweep-and-report, uniform refactor, run tests and tabulate |
+| **Selected** | a choice from a visible option space whose criteria are supplied | judge items against a written protocol, triage into known bins, structured review against a rubric |
+| **Original** | the criteria, position, or architecture must be originated | form a position, design the architecture, revise a taxonomy, read the user's intent, invent the rubric itself |
+
+**The delegation boundary sits at the Selected|Original seam, and it is a theorem, not a taste.** For output at Selected and below, verification costs less than production: a machine checks a test suite, a schema, a quote's existence; a spot-read confirms a protocol was followed. For Original output, verification *is* re-production — to check a position or an architecture you must re-form the judgment, so delegating it costs twice instead of half. The delegation economy closes exactly and only where verification is cheaper than production, and that line falls precisely at "the criteria exist outside the agent's head."
+
+**Delegation is substrate-extension.** An action's intensity is not a property of the action alone — it is a property of the action *given the current substrate*, and the orchestrator authors the substrate. Judging against tacit standards is Original and undelegatable: each agent would invent its own incompatible criteria. Write the criteria down once, into a versioned protocol file, and each dispatch's residual task drops to Selected: "apply this protocol to these inputs." The extension artifacts form a ladder:
+
+| Artifact | Deposits | Reduces | Amortizes |
+|---|---|---|---|
+| Versioned protocol file | the decision criteria, made explicit | Original → Selected | across every dispatch and future run; improves under revision |
+| Schema / output contract | the output's structural form | Selected → Implied; *enables the mechanical gate* | across all consumers |
+| Worked exemplar | one concrete done example | Selected → Implied (pattern-match beats choose) | cheap — often a byproduct of the first dispatch |
+| Per-dispatch brief | this slice's scope, inputs, boundaries | narrows everything | **never** — the brief is each delegation's marginal cost |
+
+The brief deserves a defense: it is a thinking tool disguised as overhead. Writing a good brief forces you to state what the concern is, what would bias it, and what its verification gate will be — before any evidence arrives. Part of the per-dispatch cost is design work you owed anyway, done earlier, where it shapes the work instead of critiquing it afterward. Sharp briefs return sharp work; soft briefs return soft work in exactly the same places.
+
+**The residual-Original diagnostic** — the deepest maintenance tool in the doctrine: Original judgment leaking from a delegated output means the boundary was mis-drawn, and the leak forks two ways. If the leaked judgment *generalizes* — the agent had to invent a rule the protocol should have carried — the substrate was under-extended: fold the leak into the protocol and re-dispatch. The leak is itself the specification of the missing substrate. If the leaked judgment is *terminal* — it IS the deliverable — the class was misclassified: pull it home. And note the epistemic bonus: several independent agents converging on the same abstention or the same invented rule is protocol-falsification evidence of a kind one mind reading alone cannot generate. Fan-out is an instrument, not just an economy.
+
+**The consequence rider, orthogonal to intensity**: a Stock-intensity *delete* is not a Stock-intensity *read*. Side-effects, external reach, and irreversibility gate delegation independently of how mechanical the work looks. Mutating writes want diff review; external or irreversible actions (infrastructure writes, publishes, destructive file ops, history rewrites) stay home or run preview/dry-run first.
+
+Two classes sit outside the ladder entirely: **dialogue with the user** (Original by address — its content lives in their head and the working relationship; no quantity of substrate contains it) and **dispatch itself** (constitutive — the boundary-drawing cannot be handed to the thing being bounded).
+
+## 3. The action-class verdicts
+
+| Action class | Verdict | Extension needed | Gate |
+|---|---|---|---|
+| Comprehension reads (multi-file code/docs) — the dominant freight class | **delegate-always** when bulk | file paths in the brief; a filter-protocol if the filter recurs | spot-read the returned summary |
+| Inspection/search sweeps | **delegate-when** bundled into a task | narrow mandate ("find all callers of X") | self-evident result |
+| Single targeted lookup (known file, one grep) | **keep** — below floor | — | — |
+| Orientation reads (session-defining context) | **keep-always** | — | — |
+| Build/test **runs** | **delegate** the run | none — the failure names itself | exit code / first error line |
+| Novel-failure **diagnosis** | **keep** (Original) | — | — |
+| Code authoring | **split**: delegate the comprehension reads and boilerplate-from-exemplar; **keep the which-change decision and architecture** | worked exemplar; scoped brief | tests/typecheck/build + a diff read |
+| Mechanical edit sweeps (uniform, many files) | **delegate** | pattern + file-set brief | diff review + compile/test backstop |
+| Doc/synthesis authoring | **split**: delegate first-draft bulk arrangement; **keep synthesis and any new inference** | outline/protocol + prior summaries | spot-read + citation check |
+| Review/judging | **delegate-when** a protocol externalizes the criteria; keep single-item or tacit-criteria judgment | **versioned protocol file** | mechanical exhibit gate + a sampled altitude read |
+| External-system operations | **split**: delegate bulk reads; **keep or preview-gate writes** | pointer to the tool's own documentation/skill | reads mechanical; writes dry-run first |
+| Version control, workspace bookkeeping | **keep-always** (curation judgment) | — | diff/lint self-check |
+| Scripted shell bulk | **delegate** early | brief or script | mechanical; preview anything destructive |
+| Dispatch/orchestration, user dialogue, thinking | **keep-always** (constitutive · addressed · irreducible) | — | — |
+
+The empirical shape behind the table: in the measured corpus, bulk comprehension reads alone were ~76% of all orchestrator freight, while edits — the most frequent tool by call count — were ~2% of freight and mostly judgment. The delegable part of coding is the reading coding requires, not the edits. "Delegate the basic coding" mis-aims; "delegate the comprehension, keep the which-change" is what the data supports.
+
+## 4. Handoff shapes — all four, every delegation
+
+1. **Versioned protocol file** for recurring criteria. Author once, point every dispatch at it, never re-inline it per dispatch. It is also where residual-Original leaks get folded back in, so it improves under use.
+2. **File-based briefs in, file outputs back.** Payloads stay off the wire and out of the window: the dispatch is a pointer (~a hundred tokens), the agent's reply is one line, the substance is on disk. Have agents write a compressed summary *first*, then the full output — the summary is a checkpoint that survives if the agent dies mid-work.
+3. **Mechanical gate at ingest** — the highest-leverage move in the whole discipline: **constrain the output's shape until its gate becomes mechanical.** Schema validation. Tests. And the strongest pattern: an *exhibit anchor* — require every claim to carry a verbatim quote from its source, and machine-check at ingest that the quote exists. A fabricated or paraphrased claim then cannot land, not because anyone is vigilant but because the collector refuses what it cannot find. In the measured prototype this gate saw hundreds of proposals and zero rejections — a backstop, not a bottleneck, because strong models quote reliably when the protocol demands it. "Delegate + verify mechanically" is the pattern; "delegate + trust" is the failure mode, and it fails silently.
+4. **Transcripts as ground truth.** Subagent transcripts (under the session's `subagents/` directory, one JSONL per agent) carry the real per-event `model` field and stream live mid-flight. The UI's model label and the not-yet-written output file are not evidence. One grep settles what actually ran:
+   `grep -o '"model":"[^"]*"' agent-<id>.jsonl | sort | uniq -c`
+
+## 5. Dispatch mechanics — hard rules and known hazards
+
+- **Explicit `model:` on every dispatch, no exceptions.** An unset dispatch can inherit the session model — silently spending the budget you are protecting — and platform defaults have differed across versions in the other direction too (silent downgrade). The failure is silent both ways; the rule is cheap. Verify your environment's actual behavior once, via the transcript grep above.
+- **Dispatch in waves of 5–7**, not mega-batches: read the early returns, notice a brief that is misfiring, tune the next wave before it fires.
+- **A user message arriving mid-turn can kill all in-flight background agents, unresumably.** Re-dispatch is the only recovery. Batch when the user is not about to type, and tell them when a wave is in flight.
+- **Subagent output caps** (~32K tokens is a common ceiling): agents producing large artifacts must write incrementally or in part-files, or the final write silently never lands.
+- **Each dispatch carries a roughly flat fixed input tax** (tens of thousands of tokens of system prompt and context per agent). Prefer fewer, fatter units when work items are independent anyway; amortize protocol-authoring over the full multi-round cascade, not one wave.
+- **A dispatched batch is not atomic.** Poll the output files; never assume completion because the dispatch returned. Background agents can also die on session idle and on context compaction.
+- **Ingest discipline**: default to reading the agent's compressed summary plus surgical spot-dips into the full output only where a claim bears weight for an action you are about to take. Classify claims by evidence tier — direct tool-call results (trust by default), documentation-shaped claims (verify cheaply if load-bearing), judgment (evaluate as argument, not fact). Re-reading everything an agent read defeats the delegation.
+
+## 6. Floors — when NOT to delegate
+
+One line, three independent derivations that coincide (economic break-even, freight-times-remaining-turns, judgment-density):
+
+> **Delegate bulk + early; keep single-cheap-call, near-session-end, and Original.**
+
+Enumerated keeps: a single known-file read · a one-off grep or glob lookup · a two-line edit (the edit is cheaper than the prose describing it) · any read whose purpose is your own calibration or position-forming · reads in a session about to end · and **when the user is present and waiting, a thirty-second inline read beats a three-minute dispatch** — human latency is a floor the token arithmetic misses.
+
+**Reduction at source beats relocation**: a targeted semantic or index lookup that avoids a bulk read saves the freight entirely rather than moving it to a disposable window. Measured: semantic search was used two orders of magnitude less than brute-force reads — often the cheapest optimization on the board.
+
+## 7. Session-shape guidance
+
+The contract earns its keep in **heavy sessions** — coding, orchestration, and deep-debug work whose context heads toward the window ceiling. In the measured corpus that was roughly 15% of sessions; the numerous short lookup sessions needed none of this. The floors keep the contract inert in cheap sessions; if you notice it adding dispatch ceremony to a short session, that is the failure mode firing — stop.
+
+## 8. Adopting and maintaining this contract
+
+- **Measure your own environment before trusting the constants.** Session transcripts carry per-message `usage` fields (input, output, cache-read); an afternoon of scripting yields your own input:output ratio, your freight distribution by action class, and your heavy-session archetypes. The mechanisms here are general; every constant is local.
+- **Run the retrofit test**: apply the verdict table retroactively to a real past session that went well. It should reproduce that session's keep/delegate choices, minus improvements you now see. A reproducible mismatch is a revision trigger for the table — or evidence about the session.
+- **Date-stamp measured claims** in your copy, and when one fails to reproduce, correct it at the source in the same breath.
+- **Escalate loading only on lived evidence.** This skill's always-loaded description carries the reflex; the body loads on demand. If live use shows the reflex under-firing under pressure — sessions bulk-reading inline when they should not — promote a three-to-five-line core to an always-loaded surface. If that too proves insufficient, add a mechanical nudge at the decision moment (a pre-tool hook on heavy reads past a size floor). Escalate on exhibited need, never anticipation: every always-loaded line spends the very budget this contract protects.
+- **The keep-column is the job, not the residue.** Thinking is ~92% of what an orchestrator generates and cannot be delegated by definition. The point of the whole discipline is not to do less — it is to ensure the thinking happens over distilled evidence in a lean window, spending the scarce mind entirely on the work only it can do.
