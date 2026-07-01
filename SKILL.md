@@ -27,9 +27,11 @@ description: >-
 
 # Oeconomia — a delegation economy for orchestrator sessions
 
+> **This skill is self-updating by design.** A stale contract mis-allocates every future session's budget — worse than no contract. When your environment contradicts a claim here, correct your copy in the same change that surfaces the contradiction, date-stamped; the act of noticing is the trigger. Section 8 carries the full maintenance discipline.
+
 *Oeconomia* (Greek οἰκονομία): household stewardship — the discipline of spending a scarce resource where only it can serve, and routing everything else to where it is plentiful. This skill is that discipline applied to an orchestrating model session: which work the main session keeps, which work it dispatches to subagents, what shape the handoff takes, and how the returned work is verified without re-doing it.
 
-It was distilled from measured evidence: token-accounting across roughly six hundred working sessions in one long-running environment, plus a forensic study of a large delegated-review prototype (dozens of subagents, around two million subagent tokens) whose choices the finished doctrine reproduces when applied blind. The numbers below are one environment's measurements; the mechanisms are general. Measure your own environment before trusting any constant — the last section shows how.
+It was distilled from measured evidence: token-accounting across roughly six hundred working sessions in one long-running environment, plus a forensic study of a large delegated-review prototype (about forty subagents across parallel waves) whose choices the finished doctrine reproduces when applied blind. The numbers below are one environment's measurements; the mechanisms are general. Measure your own environment before trusting any constant — the last section shows how.
 
 ## 0. Charter and jurisdiction
 
@@ -110,18 +112,18 @@ The empirical shape behind the table: in the measured corpus, bulk comprehension
 
 1. **Versioned protocol file** for recurring criteria. Author once, point every dispatch at it, never re-inline it per dispatch. It is also where residual-Original leaks get folded back in, so it improves under use.
 2. **File-based briefs in, file outputs back.** Payloads stay off the wire and out of the window: the dispatch is a pointer (~a hundred tokens), the agent's reply is one line, the substance is on disk. Have agents write a compressed summary *first*, then the full output — the summary is a checkpoint that survives if the agent dies mid-work.
-3. **Mechanical gate at ingest** — the highest-leverage move in the whole discipline: **constrain the output's shape until its gate becomes mechanical.** Schema validation. Tests. And the strongest pattern: an *exhibit anchor* — require every claim to carry a verbatim quote from its source, and machine-check at ingest that the quote exists. A fabricated or paraphrased claim then cannot land, not because anyone is vigilant but because the collector refuses what it cannot find. In the measured prototype this gate saw hundreds of proposals and zero rejections — a backstop, not a bottleneck, because strong models quote reliably when the protocol demands it. "Delegate + verify mechanically" is the pattern; "delegate + trust" is the failure mode, and it fails silently.
+3. **Mechanical gate at ingest** — the highest-leverage move in the whole discipline: **constrain the output's shape until its gate becomes mechanical.** Schema validation. Tests. And the strongest pattern: an *exhibit anchor* — require every claim to carry a verbatim quote from its source, and machine-check at ingest that the quote exists. A fabricated or paraphrased claim then cannot land, not because anyone is vigilant but because the collector refuses what it cannot find. In the measured prototype this gate saw over 150 proposals and zero rejections — a backstop, not a bottleneck, because strong models quote reliably when the protocol demands it. "Delegate + verify mechanically" is the pattern; "delegate + trust" is the failure mode, and it fails silently.
 4. **Transcripts as ground truth.** Subagent transcripts (under the session's `subagents/` directory, one JSONL per agent) carry the real per-event `model` field and stream live mid-flight. The UI's model label and the not-yet-written output file are not evidence. One grep settles what actually ran:
    `grep -o '"model":"[^"]*"' agent-<id>.jsonl | sort | uniq -c`
 
 ## 5. Dispatch mechanics — hard rules and known hazards
 
-- **Explicit `model:` on every dispatch, no exceptions.** An unset dispatch can inherit the session model — silently spending the budget you are protecting — and platform defaults have differed across versions in the other direction too (silent downgrade). The failure is silent both ways; the rule is cheap. Verify your environment's actual behavior once, via the transcript grep above.
+- **Explicit `model:` on every dispatch, no exceptions.** An unset dispatch can inherit the session model — silently spending the budget you are protecting. Defaults vary across platform versions and configurations; the failure is silent, the rule is cheap. Verify your environment's actual behavior once, via the transcript grep above.
 - **Dispatch in waves of 5–7**, not mega-batches: read the early returns, notice a brief that is misfiring, tune the next wave before it fires.
-- **A user message arriving mid-turn can kill all in-flight background agents, unresumably.** Re-dispatch is the only recovery. Batch when the user is not about to type, and tell them when a wave is in flight.
-- **Subagent output caps** (~32K tokens is a common ceiling): agents producing large artifacts must write incrementally or in part-files, or the final write silently never lands.
-- **Each dispatch carries a roughly flat fixed input tax** (tens of thousands of tokens of system prompt and context per agent). Prefer fewer, fatter units when work items are independent anyway; amortize protocol-authoring over the full multi-round cascade, not one wave.
-- **A dispatched batch is not atomic.** Poll the output files; never assume completion because the dispatch returned. Background agents can also die on session idle and on context compaction.
+- **A stopped agent cannot be resumed.** If a background agent is deliberately interrupted or killed, continuation requests are refused and its work is cancelled — re-dispatch is the only recovery. Design for cheap re-dispatch (versioned protocol + pointer briefs) and checkpoint early (summary first, full artifact second) so partial work survives on disk. Ordinary user messages do not kill background agents; they run across turns by design.
+- **Subagent output caps** (~32K tokens is a common ceiling; check your environment): agents producing large artifacts must write incrementally or in part-files, or the final write silently never lands.
+- **Each dispatch carries a roughly flat fixed input tax** (tens of thousands of tokens of system prompt and context per agent, workload-dependent). Prefer fewer, fatter units when work items are independent anyway; amortize protocol-authoring over the full multi-round cascade, not one wave.
+- **A dispatched batch is not atomic.** Poll the output files; never assume completion because the dispatch returned.
 - **Ingest discipline**: default to reading the agent's compressed summary plus surgical spot-dips into the full output only where a claim bears weight for an action you are about to take. Classify claims by evidence tier — direct tool-call results (trust by default), documentation-shaped claims (verify cheaply if load-bearing), judgment (evaluate as argument, not fact). Re-reading everything an agent read defeats the delegation.
 
 ## 6. Floors — when NOT to delegate
@@ -138,10 +140,23 @@ Enumerated keeps: a single known-file read · a one-off grep or glob lookup · a
 
 The contract earns its keep in **heavy sessions** — coding, orchestration, and deep-debug work whose context heads toward the window ceiling. In the measured corpus that was roughly 15% of sessions; the numerous short lookup sessions needed none of this. The floors keep the contract inert in cheap sessions; if you notice it adding dispatch ceremony to a short session, that is the failure mode firing — stop.
 
-## 8. Adopting and maintaining this contract
+## 8. Adopting, calibrating, and keeping it true
+
+**Calibrate first:**
 
 - **Measure your own environment before trusting the constants.** Session transcripts carry per-message `usage` fields (input, output, cache-read); an afternoon of scripting yields your own input:output ratio, your freight distribution by action class, and your heavy-session archetypes. The mechanisms here are general; every constant is local.
 - **Run the retrofit test**: apply the verdict table retroactively to a real past session that went well. It should reproduce that session's keep/delegate choices, minus improvements you now see. A reproducible mismatch is a revision trigger for the table — or evidence about the session.
-- **Date-stamp measured claims** in your copy, and when one fails to reproduce, correct it at the source in the same breath.
-- **Escalate loading only on lived evidence.** This skill's always-loaded description carries the reflex; the body loads on demand. If live use shows the reflex under-firing under pressure — sessions bulk-reading inline when they should not — promote a three-to-five-line core to an always-loaded surface. If that too proves insufficient, add a mechanical nudge at the decision moment (a pre-tool hook on heavy reads past a size floor). Escalate on exhibited need, never anticipation: every always-loaded line spends the very budget this contract protects.
-- **The keep-column is the job, not the residue.** Thinking is ~92% of what an orchestrator generates and cannot be delegated by definition. The point of the whole discipline is not to do less — it is to ensure the thinking happens over distilled evidence in a lean window, spending the scarce mind entirely on the work only it can do.
+
+**Then keep it true — update your copy in the same change that creates the fact, not later:**
+
+- **A claim fails to reproduce in your environment** → correct it immediately, date-stamped. The act of noticing is the trigger; a correction deferred is a correction lost.
+- **The platform surface moves** (dispatch parameters, model-default behavior, output caps, transcript layout) → re-verify the mechanics section against the live surface before building on it. A claim verified at one version is a starting point at the next, not a guarantee.
+- **A verdict flips in live use, or a new action class emerges** → update the table before the session ends, and note what exhibited it.
+- **A new handoff shape or verification gate proves itself in use** — twice; once is an anecdote — → fold it in.
+- **A floor mis-fires or a hazard bites that section 5 didn't warn about** → sharpen the section at session end, not next quarter.
+
+This file is operational doctrine only — not a changelog. Keep history in version control; do not accrete per-session notes here. End every heavy orchestration session with a thirty-second check: hazard unwarned? floor mis-called? verdict that felt wrong? Fold it in before it fades — every session using the contract should leave the contract sharper.
+
+**Escalate loading only on lived evidence.** This skill's always-loaded description carries the reflex; the body loads on demand. If live use shows the reflex under-firing under pressure — sessions bulk-reading inline when they should not — promote a three-to-five-line core to an always-loaded surface. If that too proves insufficient, add a mechanical nudge at the decision moment (a pre-tool hook on heavy reads past a size floor). Escalate on exhibited need, never anticipation: every always-loaded line spends the very budget this contract protects.
+
+**The keep-column is the job, not the residue.** Thinking is ~92% of what an orchestrator generates and cannot be delegated by definition. The point of the whole discipline is not to do less — it is to ensure the thinking happens over distilled evidence in a lean window, spending the scarce mind entirely on the work only it can do.
