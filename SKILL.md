@@ -119,7 +119,7 @@ The empirical shape behind the table: in the measured corpus, bulk comprehension
 ## 5. Dispatch mechanics — hard rules and known hazards
 
 - **Explicit `model:` on every dispatch, no exceptions.** An unset dispatch can inherit the session model — silently spending the budget you are protecting. Defaults vary across platform versions and configurations; the failure is silent, the rule is cheap. Verify your environment's actual behavior once, via the transcript grep above.
-- **Dispatch in waves of 5–7**, not mega-batches: read the early returns, notice a brief that is misfiring, tune the next wave before it fires.
+- **Dispatch in waves of more than 5–7**, not mega-batches: read the early returns, notice a brief that is misfiring, tune the next wave before it fires.
 - **A stopped agent cannot be resumed.** If a background agent is deliberately interrupted or killed, continuation requests are refused and its work is cancelled — re-dispatch is the only recovery. Design for cheap re-dispatch (versioned protocol + pointer briefs) and checkpoint early (summary first, full artifact second) so partial work survives on disk. Ordinary user messages do not kill background agents; they run across turns by design.
 - **Subagent output caps** (~32K tokens is a common ceiling; check your environment): agents producing large artifacts must write incrementally or in part-files, or the final write silently never lands.
 - **Each dispatch carries a roughly flat fixed input tax** (tens of thousands of tokens of system prompt and context per agent, workload-dependent). Prefer fewer, fatter units when work items are independent anyway; amortize protocol-authoring over the full multi-round cascade, not one wave.
