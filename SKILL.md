@@ -125,6 +125,7 @@ The empirical shape behind the table: in the measured corpus, bulk comprehension
 - **Each dispatch carries a roughly flat fixed input tax** (tens of thousands of tokens of system prompt and context per agent, workload-dependent). Prefer fewer, fatter units when work items are independent anyway; amortize protocol-authoring over the full multi-round cascade, not one wave.
 - **A dispatched batch is not atomic.** Poll the output files; never assume completion because the dispatch returned.
 - **Ingest discipline**: default to reading the agent's compressed summary plus surgical spot-dips into the full output only where a claim bears weight for an action you are about to take. Classify claims by evidence tier — direct tool-call results (trust by default), documentation-shaped claims (verify cheaply if load-bearing), judgment (evaluate as argument, not fact). Re-reading everything an agent read defeats the delegation.
+- **Parallel dispatch into ONE codebase: partition by exclusive file-ownership, declared in every brief.** Each brief names the files that agent owns AND names the sibling-owned files as do-not-touch; a needed-but-forbidden change goes in the agent's summary as a **ready-to-apply patch**, never applied across the boundary — the integrator applies it after the owner finishes. A deferral like that is the discipline working, not a failure. (Field-proven: three concurrent builders in one package, zero clobbers; one agent's cross-boundary fix arrived as a patch and applied clean.) Two corollaries from the same run: **literal test-COUNT gates are moving targets under parallel test-adding agents** — express shared gates as "0 fail, baseline preserved," never an absolute count; and transient editor-diagnostic noise from siblings mid-edit is expected — judge only finished gates.
 
 ## 6. Floors — when NOT to delegate
 
@@ -133,6 +134,8 @@ One line, three independent derivations that coincide (economic break-even, frei
 > **Delegate bulk + early; keep single-cheap-call, near-session-end, and Original.**
 
 Enumerated keeps: a single known-file read · a one-off grep or glob lookup · a two-line edit (the edit is cheaper than the prose describing it) · any read whose purpose is your own calibration or position-forming · reads in a session about to end · and **when the user is present and waiting, a thirty-second inline read beats a three-minute dispatch** — human latency is a floor the token arithmetic misses.
+
+**The freight-already-paid refinement**: a ready-made patch whose text you already ingested (you read it to review or receive it) is nearly free to apply inline — the window cost was paid at read time; a dispatch would ADD a flat dispatch tax to save nothing. Delegating patch-application pays only when the edit content can stay out of your window end-to-end (possible only where the gate is mechanical enough that you never read the patch at all). The floor variable is whether the freight already crossed, not the edit's size.
 
 **Reduction at source beats relocation**: a targeted semantic or index lookup that avoids a bulk read saves the freight entirely rather than moving it to a disposable window. Measured: semantic search was used two orders of magnitude less than brute-force reads — often the cheapest optimization on the board.
 
