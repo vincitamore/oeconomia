@@ -45,7 +45,7 @@ It was distilled from measured evidence: token-accounting across roughly six hun
 
 ## 1. Why this works: the window is the cost
 
-Measured across ~600 sessions: an orchestrator session consumes input over output at roughly **263:1**, and ~98.5% of that input is cache-read — the accumulated context window re-sent on every turn. Generation is a rounding error against the window, and ~92% of generation is thinking: no-tool reasoning and user dialogue, the one thing that cannot be delegated at all. (If your provider weights cached reads at a tenth, the ratio compresses toward 5:1 — the direction is invariant, and the direction is all the doctrine needs.)
+Measured across ~600 sessions: an orchestrator session consumes input over output at roughly **263:1**, and ~98.5% of that input is cache-read — the accumulated context window re-sent on every turn. Generation is a rounding error against the window, and ~92% of generation is thinking: no-tool reasoning and user dialogue, the one thing that cannot be delegated at all. (If your provider weights cached reads at a tenth, the ratio compresses toward 5:1 — the direction is invariant, and the direction is all the doctrine needs. Instrument note: usage collectors that read only text-final assistant events, or that take the first streamed usage block per message, undercount severalfold — one streamed message fans out per content block, and its usage counters are progressive with only the last block final. Fixing that in the measuring environment made the ratio stronger, not weaker.)
 
 Three consequences:
 
