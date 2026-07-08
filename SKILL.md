@@ -23,6 +23,7 @@ description: >-
   genuinely pipeline-shaped work: three or more independent concerns needing
   parallel investigation and synthesis deserve a real multi-agent pipeline,
   not one under-powered errand.
+allowed-tools: Read, Grep, Glob, Bash, Agent, SendMessage
 ---
 
 # Oeconomia — a delegation economy for orchestrator sessions
@@ -113,8 +114,8 @@ The empirical shape behind the table: in the measured corpus, bulk comprehension
 1. **Versioned protocol file** for recurring criteria. Author once, point every dispatch at it, never re-inline it per dispatch. It is also where residual-Original leaks get folded back in, so it improves under use.
 2. **File-based briefs in, file outputs back.** Payloads stay off the wire and out of the window: the dispatch is a pointer (~a hundred tokens), the agent's reply is one line, the substance is on disk. Have agents write a compressed summary *first*, then the full output — the summary is a checkpoint that survives if the agent dies mid-work.
 3. **Mechanical gate at ingest** — the highest-leverage move in the whole discipline: **constrain the output's shape until its gate becomes mechanical.** Schema validation. Tests. And the strongest pattern: an *exhibit anchor* — require every claim to carry a verbatim quote from its source, and machine-check at ingest that the quote exists. A fabricated or paraphrased claim then cannot land, not because anyone is vigilant but because the collector refuses what it cannot find. In the measured prototype this gate saw over 150 proposals and zero rejections — a backstop, not a bottleneck, because strong models quote reliably when the protocol demands it. "Delegate + verify mechanically" is the pattern; "delegate + trust" is the failure mode, and it fails silently.
-4. **Transcripts as ground truth.** Subagent transcripts (under the session's `subagents/` directory, one JSONL per agent) carry the real per-event `model` field and stream live mid-flight. The UI's model label and the not-yet-written output file are not evidence. One grep settles what actually ran:
-   `grep -o '"model":"[^"]*"' agent-<id>.jsonl | sort | uniq -c`
+4. **Transcripts as ground truth.** Subagent transcripts carry the real per-event `model` field and stream live mid-flight; the UI's model label is not evidence. Their location is harness-build-specific and moves across versions — one current build lands each agent's full JSONL transcript under the session's temp directory at `tasks/<agent-id>.output`; an earlier build used a `subagents/` directory of per-agent `.jsonl` files. Locate your build's layout once, then one grep settles what actually ran:
+   `grep -o '"model":"[^"]*"' <agent-transcript> | sort | uniq -c`
 
 ## 5. Dispatch mechanics — hard rules and known hazards
 
